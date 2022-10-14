@@ -22,7 +22,7 @@ local hud_time = 86400*3 -- 3 days
 local hud_beforetime = 0
 
 cmdlib.register_chatcommand("rollback_hud", {
-	params = "[node] [player] [distance] [show_time] [time] [before_time]",
+	params = "[node] [player] [distance] [time] [before_time] [show_time]",
 --	custom_syntax = ,
 --	implicit_calls = ,
 	description = "Show rollback info as hud.",
@@ -45,7 +45,7 @@ cmdlib.register_chatcommand("rollback_hud", {
 				else hud_time = params.time end
 			end
 		end
-
+		if params.show_time then hud_showtime = params.hud_showtime end
 	end
 })
 
@@ -57,7 +57,7 @@ local function debugdata(pos)
 	local name = node.name .. ":" .. node.param1 .. ":" .. node.param2
 	local lines = sz_table:new()
 	local environ = sz_table:new()
-	local actions = core.rollback_get_node_actions(pos, 1, 100000, 1)
+	local actions = core.rollback_get_node_actions(pos, 1, hud_time, 1)
 	local num_actions = #actions
 	lines:insert(environ:concat(", "))
 	if not actions or num_actions == 0 then return
@@ -65,8 +65,8 @@ local function debugdata(pos)
 		local time = os.time()
 		for i = num_actions, 1, -1 do
 			local action = actions[i]
-			lines:insert(S("@1",action.actor))
-			if hud_time then lines:insert(S("il y a @1 secondes",time - action.time)) end
+			lines:insert(minetest.colorize("#000000", S("@1",action.actor)))
+			if hud_showtime then lines:insert(S("@1 seconds ago",time - action.time)) end--"il y a @1 secondes"
 		end
 	end
 	return lines:concat("\n")
@@ -92,7 +92,7 @@ local function mkhud(player, pos)
 			world_pos = pos,
 			name = text,
 			text = "",
-			number = 0xFFFF80,
+			number = 0xffffff,--0xFFFF80,
 			precision = 0 -- hides distance
 		})
 	return function(keep)
